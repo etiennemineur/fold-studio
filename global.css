@@ -1,0 +1,114 @@
+@import "./assets/fonts/fonts.css";
+
+
+
+:root {
+  /* Overlay layers */
+  --z-overlay: 400;
+
+  --z-spotlight: 1000; /* Tutorial spotlights/guided help */
+
+  /* System layers */
+  --z-critical: 2000; /* Critical system notifications */
+
+  /* spacing */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+}
+
+:root {
+  /* Core palette - warm drafting paper and black ink */
+  --background: #F3EFE6;
+  --foreground: #0A0A0A;
+
+  --surface: #F3EFE6;
+  --surface-foreground: #0A0A0A;
+  
+  --sidebar: #F3EFE6;
+  --sidebar-foreground: #0A0A0A;
+  
+  --card: #F3EFE6;
+  --card-foreground: #0A0A0A;
+  
+  --popup: #F3EFE6;
+  --popup-foreground: #0A0A0A;
+
+  /* Primary/secondary/accent - stark ink inversion */
+  --primary: #0A0A0A;
+  --primary-foreground: #F3EFE6;
+  
+  --secondary: #E6E0D4;
+  --secondary-foreground: #0A0A0A;
+  
+  --accent: #0A0A0A;
+  --accent-foreground: #F3EFE6;
+  
+  --muted: #E6E0D4;
+  --muted-foreground: #5C5C5C;
+  
+  /* Status colors - muted, technical */
+  --success: #2E4D3A;
+  --success-foreground: #F3EFE6;
+  
+  --error: #8A2E2E;
+  --error-foreground: #F3EFE6;
+  
+  --warning: #8A6A2E;
+  --warning-foreground: #F3EFE6;
+  
+  --info: #2E4A8A;
+  --info-foreground: #F3EFE6;
+  --info-hover: #1F3366;
+  --info-active: #14224D;
+
+  /* Border - single structural black divider */
+  --border: #0A0A0A;
+
+  /* Domain-specific colors for the 2D Crease Pattern */
+  --crease-mountain: #2563EB;
+  --crease-valley: #DC2626;
+  --crease-border: #1A1A2E;
+  --crease-flat: #9CA3AF;
+
+  /* Typography - mechanical, precise */
+  --font-family-base: 'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-display: 'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-monospace: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  --font-family-cursive: cursive;
+
+  /* Border Radius - strictly sharp, 0px everywhere */
+  --radius-sm: 0px;
+  --radius: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-full: 0px;
+
+  /* Shadows - strictly none */
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-focus: 0 0 0 1px #F3EFE6, 0 0 0 3px #0A0A0A;
+
+  /* Animation */
+  --animation-duration-fast: 100ms;
+  --animation-duration-normal: 200ms;
+  --animation-duration-slow: 300ms;
+
+  /* Chart/pastel colors */
+  --chart-color-1: #FFB3BA;
+  --chart-color-2: #FFDFBA;
+  --chart-color-3: #FFFFBA;
+  --chart-color-4: #BAFFC9;
+  --chart-color-5: #BAE1FF;
+}
+
+.dark {
+  /* intentionally empty, this is a single-mode design */
+}

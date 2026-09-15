@@ -1,0 +1,393 @@
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted-foreground);
+}
+
+.loadingText {
+  margin-top: var(--spacing-4);
+  font-family: var(--font-family-monospace);
+  font-size: 0.875rem;
+}
+
+.workspace {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--background);
+}
+
+.sidebarPanel {
+  background-color: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.modeToggle {
+  display: flex;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.modeBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) 0;
+  font-family: var(--font-family-monospace);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+  border: none;
+  cursor: pointer;
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.modeBtn:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.modeBtn:hover {
+  background-color: var(--secondary);
+  color: var(--foreground);
+}
+
+.modeBtnActive {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.modeBtnActive:hover {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.sidebarContent {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+}
+
+.projectNameInput {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-monospace);
+  background-color: transparent;
+  border-color: transparent;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.projectNameInput:focus {
+  background-color: var(--background);
+  border-color: var(--primary);
+  padding: 0 var(--spacing-2);
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.sectionDesc {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-2);
+}
+
+.paramGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.paramLabel {
+  font-size: 0.75rem;
+  color: var(--sidebar-foreground);
+}
+
+.paramInputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.paramSlider {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.paramNumInput {
+  width: 4rem;
+  height: 1.75rem;
+  padding: 0 var(--spacing-2);
+  text-align: right;
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+}
+
+.applyBtn {
+  width: 100%;
+}
+
+.fileCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  overflow: hidden;
+}
+
+.fileIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.fileName {
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.importWarningList {
+  margin-top: var(--spacing-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding-left: var(--spacing-4);
+  margin-bottom: 0;
+}
+
+.importWarningItem {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  list-style-type: disc;
+}
+
+.viewPanel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  position: relative;
+  border-left: 1px solid var(--border);
+}
+
+.viewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: color-mix(in srgb, var(--surface) 90%, black);
+  border-bottom: 1px solid var(--border);
+  z-index: 2;
+  height: 44px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.viewLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+.layerToggle {
+display: flex;
+align-items: center;
+gap: var(--spacing-2);
+font-size: 0.75rem;
+color: var(--foreground);
+background: none;
+border: none;
+padding: 0;
+cursor: pointer;
+transition: opacity 0.2s ease;
+}
+
+.layerToggle:hover {
+opacity: 0.7;
+}
+
+.layerToggleActive {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  opacity: 1;
+}
+
+.layerToggleInactive {
+  opacity: 0.4;
+}
+
+.legendColor {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.cutToolBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+    background-color: rgba(0, 85, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 85, 255, 0.2);
+  color: #0055FF;
+  font-size: 0.75rem;
+  font-weight: 500;
+  z-index: 3;
+}
+
+.viewCanvasContainer {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.progressContainer {
+  background-color: color-mix(in srgb, var(--surface) 90%, black);
+  border-top: 1px solid var(--border);
+  padding: var(--spacing-2) var(--spacing-4);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.progressLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.progressSlider {
+  flex: 1;
+  min-width: 80px;
+}
+
+.progressActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-shrink: 0;
+}
+
+.popupPlaybackControls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.progressIconButton {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.progressIconButton:hover {
+  border-color: var(--border);
+  background: var(--background);
+}
+
+.progressIconButtonActive {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.progressValue {
+  font-family: var(--font-family-monospace);
+  font-size: 0.875rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.collapsedBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  background-color: color-mix(in srgb, var(--surface) 95%, black);
+  border-right: 1px solid var(--border);
+  transition: background-color 0.15s ease;
+}
+
+.collapsedBar:hover {
+  background-color: var(--muted);
+}
+
+.collapsedLabel {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.workspace[data-animating] :global([data-panel]) {
+  transition: flex-basis 0.5s ease, flex-grow 0.5s ease, flex-shrink 0.5s ease;
+}

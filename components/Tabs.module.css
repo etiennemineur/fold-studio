@@ -1,0 +1,103 @@
+@layer base {
+  .tabsList {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin: 0;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: var(--spacing-4);
+    padding: 0 var(--spacing-2);
+  }
+
+  .tabsList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabsTrigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family-base);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    background-color: transparent;
+    padding: var(--spacing-3) 0;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    position: relative;
+    transition: color var(--animation-duration-fast) ease;
+    white-space: nowrap;
+  }
+
+  .tabsTrigger:hover {
+    color: var(--foreground);
+  }
+
+  .tabsTrigger[data-state="active"] {
+    color: var(--foreground);
+  }
+
+  .tabsTrigger[data-state="active"]::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary);
+  }
+
+  .tabsTrigger:not([data-state="active"]):hover::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--border);
+  }
+
+  .tabsTrigger:focus-visible {
+    outline: none;
+    color: var(--foreground);
+  }
+  
+  .tabsTrigger:focus-visible::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary);
+  }
+
+  .tabsTrigger[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    color: var(--muted-foreground);
+  }
+
+  .tabsContent {
+    color: var(--foreground);
+    outline: none;
+  }
+
+  .tabsContent[hidden] {
+    display: none !important;
+  }
+
+  :global(.dark) .tabsTrigger[data-state="active"]::after {
+    background-color: var(--primary);
+  }
+
+  :global(.dark) .tabsTrigger:not([data-state="active"]):hover::after {
+    background-color: var(--border);
+  }
+}

@@ -1,0 +1,161 @@
+.container {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  color: var(--foreground);
+  position: relative;
+  font-family: var(--font-family-base);
+}
+
+.loginSection {
+  width: 100%;
+  padding: var(--spacing-12) 0 var(--spacing-6) 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.header {
+  position: absolute;
+  top: var(--spacing-4);
+  left: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.logo {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block;
+}
+
+.brandText {
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--foreground);
+}
+
+.formWrapper {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.submitBtn {
+  width: 100%;
+  margin-top: var(--spacing-2);
+  font-family: var(--font-family-monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.generalError {
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  color: var(--error);
+  margin-top: var(--spacing-2);
+  text-align: center;
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  padding: var(--spacing-2);
+}
+
+.alphaSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.signInSection {
+  opacity: 0.7;
+  transition: opacity var(--animation-duration-normal) ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.signInSection:hover,
+.signInSection:focus-within {
+  opacity: 1;
+}
+
+.loginFormSmall label {
+  font-size: 0.7rem;
+}
+
+.loginFormSmall input {
+  font-size: 0.75rem;
+  padding: var(--spacing-1) var(--spacing-2);
+  height: 2rem;
+}
+
+.loginFormSmall button[type="submit"] {
+  font-size: 0.75rem;
+  padding: var(--spacing-1) var(--spacing-2);
+  height: 2rem;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin: var(--spacing-1) 0;
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+  opacity: 0.2;
+}
+
+.orText {
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+}
+
+.tryAlphaBtn {
+  width: 100%;
+  font-family: var(--font-family-monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tryAlphaSubtext {
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.authActions {
+  display: flex;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+
+.actionBtn {
+  flex: 1;
+  font-family: var(--font-family-monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

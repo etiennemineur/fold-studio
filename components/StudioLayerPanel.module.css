@@ -1,0 +1,218 @@
+@layer base {
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    padding: 0;
+    background-color: var(--sidebar);
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .title {
+    font-family: var(--font-family-base);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .importButton {
+    border-radius: 0;
+  }
+
+  .layerList {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    background-color: var(--background);
+  }
+
+  .layerRow {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: 2px var(--spacing-2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background-color var(--animation-duration-fast) ease;
+  }
+
+  .layerRow:last-child {
+    border-bottom: none;
+  }
+
+  .layerRow:hover {
+    background-color: color-mix(in srgb, var(--foreground) 5%, var(--background));
+  }
+
+  .layerRow.selected {
+    background-color: color-mix(in srgb, var(--accent) 15%, var(--background));
+  }
+
+  .layerRow.dragOver {
+    border-top: 1px solid var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 5%, var(--background));
+  }
+
+  .dragHandle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    color: var(--foreground);
+    cursor: grab;
+    opacity: 0.4;
+  }
+
+  .dragHandle:hover {
+    opacity: 0.8;
+  }
+
+  .layerName {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-family-monospace);
+    font-size: 0.75rem;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 var(--spacing-1);
+  }
+
+  .iconButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--foreground);
+    cursor: pointer;
+    border-radius: 0;
+    opacity: 0.8;
+    padding: 0;
+  }
+
+  .iconButton:hover {
+    background-color: color-mix(in srgb, var(--foreground) 10%, var(--background));
+    opacity: 1;
+  }
+
+  .iconButton.destructive:hover {
+    color: var(--error);
+    background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  }
+
+  .iconSpacer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    color: var(--foreground);
+  }
+
+  .muted {
+    opacity: 0.4;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    border-top: 1px solid var(--border);
+  }
+
+  .paramGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+  }
+
+  .paramLabel {
+    font-family: var(--font-family-monospace);
+    font-size: 0.75rem;
+    color: var(--foreground);
+  }
+
+  .paramInputRow {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+  }
+
+  .slider {
+    flex: 1;
+  }
+
+  .numberInput {
+    width: 4rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+    padding: 0 var(--spacing-1);
+    text-align: center;
+  }
+
+  .footer {
+    display: flex;
+  }
+
+  .versoButton {
+    width: 100%;
+    border-radius: 0;
+  }
+
+  .materialSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    border-top: 1px solid var(--border);
+  }
+
+  .colorRow {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .colorPicker {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    appearance: none;
+    background: transparent;
+  }
+
+  .colorPicker::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  .colorPicker::-webkit-color-swatch {
+    border: 1px solid var(--border);
+    border-radius: 0;
+  }
+
+  .colorHexInput {
+    width: 5rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+    padding: 0 var(--spacing-1);
+    text-align: center;
+    text-transform: uppercase;
+  }
+}

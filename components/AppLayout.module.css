@@ -1,0 +1,198 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3rem;
+  padding: 0 var(--spacing-4);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  text-decoration: none;
+  color: var(--foreground);
+  transition: opacity var(--animation-duration-fast) ease;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logoIcon {
+  color: var(--primary);
+}
+
+.logoText {
+  font-family: var(--font-family-monospace);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.versionBadge {
+  font-family: var(--font-family-monospace);
+  font-size: 0.65rem;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+  padding: 0.125rem 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.leftNav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  height: 100%;
+}
+
+.navSeparator {
+  width: 1px;
+  height: 1.25rem;
+  background-color: var(--border);
+  opacity: 0.2;
+  margin: 0;
+}
+
+.navTabs {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  height: 100%;
+}
+
+.navTab {
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  padding: 0 var(--spacing-2);
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.navTab:hover {
+  color: var(--foreground);
+}
+
+.navTabActive {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+.navLink {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color var(--animation-duration-fast) ease;
+  font-family: var(--font-family-base);
+}
+
+.navLink:hover {
+  color: var(--primary);
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aboutPopover {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.aboutSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.aboutTitle {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+.aboutText {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.aboutLink {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.aboutLink:hover {
+  text-decoration: underline;
+}
+
+.aboutDivider {
+  height: 1px;
+  background-color: var(--border);
+  opacity: 0.15;
+  width: 100%;
+}
+
+.techList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.techList li {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.techDesc {
+  color: var(--muted-foreground);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}

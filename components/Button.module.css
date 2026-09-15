@@ -1,0 +1,221 @@
+@layer base {
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    font-family: var(--font-family-base);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius);
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--animation-duration-fast) ease,
+      border-color var(--animation-duration-fast) ease,
+      color var(--animation-duration-fast) ease;
+    outline: none;
+    border: 1px solid transparent;
+    position: relative;
+  }
+
+  .button:focus-visible {
+    box-shadow: var(--shadow-focus);
+    outline: none;
+  }
+
+  .sm {
+    height: 1.75rem;
+    padding: 0 var(--spacing-2);
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .md {
+    height: 2.25rem;
+    padding: 0 var(--spacing-3);
+    font-size: 0.8125rem;
+  }
+
+  .lg {
+    height: 2.75rem;
+    padding: 0 var(--spacing-4);
+    font-size: 0.875rem;
+  }
+
+  .icon,
+  .icon-md {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+  }
+
+  .icon-sm {
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border-radius: var(--radius-sm);
+  }
+
+  .icon-lg {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+  }
+
+  .button svg {
+    flex-shrink: 0;
+  }
+
+  .sm svg,
+  .icon-sm svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .md svg,
+  .icon svg,
+  .icon-md svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .lg svg,
+  .icon-lg svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+    --spinner-color: var(--primary-foreground);
+  }
+
+  .primary:hover {
+    background-color: color-mix(in srgb, var(--primary) 85%, black);
+    border-color: color-mix(in srgb, var(--primary) 85%, black);
+  }
+
+  .primary:active {
+    background-color: color-mix(in srgb, var(--primary) 75%, black);
+    border-color: color-mix(in srgb, var(--primary) 75%, black);
+  }
+
+  .secondary {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border-color: var(--border);
+    --spinner-color: var(--secondary-foreground);
+  }
+
+  .secondary:hover {
+    background-color: color-mix(in srgb, var(--secondary) 80%, white);
+    border-color: color-mix(in srgb, var(--border) 80%, white);
+  }
+
+  .secondary:active {
+    background-color: color-mix(in srgb, var(--secondary) 60%, white);
+  }
+
+  .destructive {
+    background-color: transparent;
+    color: var(--error);
+    border-color: var(--error);
+    --spinner-color: var(--error);
+  }
+
+  .destructive:hover {
+    background-color: var(--error);
+    color: var(--error-foreground);
+  }
+
+  .destructive:active {
+    background-color: color-mix(in srgb, var(--error) 85%, black);
+    border-color: color-mix(in srgb, var(--error) 85%, black);
+  }
+
+  .outline {
+    background-color: transparent;
+    border-color: var(--border);
+    color: var(--foreground);
+    --spinner-color: var(--foreground);
+  }
+
+  .outline:hover {
+    background-color: var(--surface);
+    border-color: color-mix(in srgb, var(--border) 80%, white);
+  }
+
+  .outline:active {
+    background-color: var(--secondary);
+  }
+
+  .ghost {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--muted-foreground);
+    --spinner-color: var(--foreground);
+  }
+
+  .ghost:hover {
+    background-color: var(--surface);
+    color: var(--foreground);
+  }
+
+  .ghost:active {
+    background-color: var(--secondary);
+    color: var(--foreground);
+  }
+
+  .link {
+    background-color: transparent;
+    color: var(--primary);
+    height: auto;
+    padding: 0;
+    text-decoration: none;
+    border: none;
+    border-radius: 0;
+    min-height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    --spinner-color: var(--primary);
+  }
+
+  .link:hover {
+    text-decoration: underline;
+    color: color-mix(in srgb, var(--primary) 80%, white);
+  }
+
+  .link:active {
+    color: color-mix(in srgb, var(--primary) 60%, white);
+  }
+
+  .link:focus-visible {
+    box-shadow: 0 0 0 2px var(--primary);
+    outline: none;
+    border-radius: var(--radius-sm);
+  }
+
+  .disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  :global(.dark) .primary:focus-visible,
+  :global(.dark) .outline:focus-visible,
+  :global(.dark) .ghost:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+
+  :global(.dark) .destructive:focus-visible {
+    box-shadow: 0 0 0 1px var(--background), 0 0 0 3px var(--error);
+  }
+
+  :global(.dark) .link:focus-visible {
+    box-shadow: 0 0 0 2px var(--primary);
+  }
+}

@@ -1,0 +1,52 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.title {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+.paramGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.paramLabel {
+  font-size: 0.75rem;
+  color: var(--sidebar-foreground);
+}
+
+.colorRow {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.colorPicker {
+  width: 34px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.colorHexInput {
+  min-width: 0;
+  height: 32px;
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}

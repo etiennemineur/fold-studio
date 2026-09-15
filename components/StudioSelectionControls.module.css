@@ -1,0 +1,62 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-family: var(--font-family-monospace);
+}
+
+.selectionLabel,
+.edgeType {
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.foldButtons {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+}
+
+.foldButton {
+  height: 22px;
+  min-height: 22px;
+  padding: 0 7px;
+  border: 0;
+  font-family: var(--font-family-monospace);
+  font-size: 0.625rem;
+  border-radius: 0;
+}
+
+.foldButton + .foldButton {
+  border-left: 1px solid var(--border);
+}
+
+.mountainActive {
+  background: #0055ff;
+  color: #ffffff;
+}
+
+.mountainActive:hover {
+  background: #0055ff;
+  color: #ffffff;
+}
+
+.valleyActive {
+  background: #00aa44;
+  color: #ffffff;
+}
+
+.valleyActive:hover {
+  background: #00aa44;
+  color: #ffffff;
+}

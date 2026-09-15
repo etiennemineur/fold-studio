@@ -1,0 +1,227 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: var(--sidebar);
+  color: var(--sidebar-foreground);
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.viewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: color-mix(in srgb, var(--surface) 90%, black);
+  border-bottom: 1px solid var(--border);
+  z-index: 2;
+  height: 44px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.projectNameInput {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-monospace);
+  background-color: transparent;
+  border-color: transparent;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.projectNameInput:focus {
+  background-color: var(--background);
+  border-color: var(--primary);
+  padding: 0 var(--spacing-2);
+}
+
+.sidebarContent {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+}
+
+.modeToggle {
+  display: flex;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.modeBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) 0;
+  font-family: var(--font-family-monospace);
+  font-size: 0.625rem;
+  font-weight: 600;
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+  border: none;
+  cursor: pointer;
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.modeBtn:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.modeBtn:hover {
+  background-color: var(--secondary);
+  color: var(--foreground);
+}
+
+.modeBtnActive {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.modeBtnActive:hover {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--border);
+  opacity: 0.1;
+  margin: var(--spacing-2) 0;
+}
+
+.paramGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.paramLabel {
+  font-size: 0.75rem;
+  color: var(--sidebar-foreground);
+}
+
+.paramInputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.paramSlider {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.paramNumInput {
+  width: 4rem;
+  height: 1.75rem;
+  padding: 0 var(--spacing-2);
+  text-align: right;
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+}
+
+.colorPickerContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--spacing-2);
+  height: 2.25rem;
+}
+
+.colorInput {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: none;
+}
+
+.colorInput::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.colorInput::-webkit-color-swatch {
+  border: none;
+  border-radius: 1px;
+}
+
+.colorValue {
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+}
+
+.collapsibleTrigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-2) 0;
+}
+
+.collapsibleTitle {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.collapsibleContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-2);
+}
+
+.flexRow {
+  display: flex;
+  gap: 8px;
+}
+
+.flex1Btn {
+  flex: 1;
+}
