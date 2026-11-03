@@ -7,6 +7,7 @@ env.json
 local-backup/
 static/__dev/
 verification/
+tests/geometry/*-results.json
 README-DEPLOY.md
 .DS_Store
 __pycache__/

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SpirogamiParams } from "../helpers/spirogamiEngine";
+import { SpirogamiParams, normalizeSpirogamiParams, SPIROGAMI_BOUNDS } from "../helpers/spirogamiEngine";
 import { ChevronDown, ChevronRight, Download, Settings } from "lucide-react";
 import { Input } from "./Input";
 import { Slider } from "./Slider";
@@ -27,7 +27,7 @@ export interface StudioSpiroSidebarProps {
 export function StudioSpiroSidebar({
   studioMode,
   params,
-  onParamsChange,
+  onParamsChange: onBoundedParamsChange,
   name,
   onNameChange,
   onExportSVG,
@@ -40,6 +40,7 @@ export function StudioSpiroSidebar({
   onInteriorColorChange,
 }: StudioSpiroSidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(true);
+  const onParamsChange = (next: SpirogamiParams) => onBoundedParamsChange(normalizeSpirogamiParams(next));
 
   return (
     <div className={styles.container}>
@@ -77,6 +78,7 @@ export function StudioSpiroSidebar({
                       />
                       <Input 
                         type="number" 
+                        min={SPIROGAMI_BOUNDS.discRadius[0]} max={SPIROGAMI_BOUNDS.discRadius[1]}
                         value={params.discRadius}
                         onChange={(e) => onParamsChange({ ...params, discRadius: parseInt(e.target.value) || 50 })}
                         className={styles.paramNumInput}
@@ -95,6 +97,7 @@ export function StudioSpiroSidebar({
                       />
                       <Input 
                         type="number" 
+                        min={SPIROGAMI_BOUNDS.innerRadius[0]} max={SPIROGAMI_BOUNDS.innerRadius[1]}
                         value={params.innerRadius}
                         onChange={(e) => onParamsChange({ ...params, innerRadius: parseInt(e.target.value) || 5 })}
                         className={styles.paramNumInput}
@@ -114,6 +117,7 @@ export function StudioSpiroSidebar({
                       <Input 
                         type="number" 
                         step="0.5"
+                        min={SPIROGAMI_BOUNDS.turns[0]} max={SPIROGAMI_BOUNDS.turns[1]}
                         value={params.turns}
                         onChange={(e) => onParamsChange({ ...params, turns: parseFloat(e.target.value) || 1 })}
                         className={styles.paramNumInput}
@@ -132,6 +136,7 @@ export function StudioSpiroSidebar({
                       />
                       <Input 
                         type="number" 
+                        min={SPIROGAMI_BOUNDS.stripHeight[0]} max={SPIROGAMI_BOUNDS.stripHeight[1]}
                         value={params.stripHeight}
                         onChange={(e) => onParamsChange({ ...params, stripHeight: parseInt(e.target.value) || 5 })}
                         className={styles.paramNumInput}
@@ -151,6 +156,7 @@ export function StudioSpiroSidebar({
                       <Input 
                         type="number" 
                         step="0.5"
+                        min={SPIROGAMI_BOUNDS.stripWidth[0]} max={SPIROGAMI_BOUNDS.stripWidth[1]}
                         value={params.stripWidth}
                         onChange={(e) => onParamsChange({ ...params, stripWidth: parseFloat(e.target.value) || 2 })}
                         className={styles.paramNumInput}
@@ -170,6 +176,7 @@ export function StudioSpiroSidebar({
                       <Input 
                         type="number" 
                         step="0.5"
+                        min={SPIROGAMI_BOUNDS.gapWidth[0]} max={SPIROGAMI_BOUNDS.gapWidth[1]}
                         value={params.gapWidth}
                         onChange={(e) => onParamsChange({ ...params, gapWidth: parseFloat(e.target.value) || 0.5 })}
                         className={styles.paramNumInput}
@@ -189,6 +196,7 @@ export function StudioSpiroSidebar({
                       <Input 
                         type="number" 
                         step="0.1"
+                        min={SPIROGAMI_BOUNDS.paperThickness[0]} max={SPIROGAMI_BOUNDS.paperThickness[1]}
                         value={params.paperThickness}
                         onChange={(e) => onParamsChange({ ...params, paperThickness: parseFloat(e.target.value) || 0.1 })}
                         className={styles.paramNumInput}

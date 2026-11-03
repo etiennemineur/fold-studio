@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { nanoid } from "nanoid";
+import { artworkSchema, type ProjectArtwork } from './studioProject';
 
 export const MATERIAL_PRESETS: Record<string, { label: string; exterior: string; interior: string }> = {
   white_cardboard: { label: 'White Cardboard', exterior: '#FFFFFF', interior: '#F0EDE8' },
@@ -28,6 +29,32 @@ export interface ArtworkLayer {
 
 export function useArtworkLayers() {
   const [layers, setLayers] = useState<ArtworkLayer[]>([]);
+  const ownedUrls = useRef(new Set<string>());
+  const pendingUrls = useRef(new Set<string>());
+  const generation = useRef(0);
+  const cancelPending = useCallback(() => {
+    generation.current++;
+    for (const url of pendingUrls.current) {
+      URL.revokeObjectURL(url);
+      ownedUrls.current.delete(url);
+    }
+    pendingUrls.current.clear();
+  }, []);
+  useEffect(() => {
+    const retained = new Set(layers.map(layer => layer.url));
+    for (const url of ownedUrls.current) {
+      if (!retained.has(url) && !pendingUrls.current.has(url)) {
+        URL.revokeObjectURL(url);
+        ownedUrls.current.delete(url);
+      }
+    }
+  }, [layers]);
+  useEffect(() => () => {
+    generation.current++;
+    for (const url of ownedUrls.current) URL.revokeObjectURL(url);
+    ownedUrls.current.clear();
+    pendingUrls.current.clear();
+  }, []);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [vectorLocked, setVectorLocked] = useState(false);
   const [materialType, setMaterialType] = useState<string>('white_cardboard');
@@ -49,8 +76,22 @@ export function useArtworkLayers() {
       boundingBox: { x: number; y: number; width: number; height: number },
     ) => {
       const url = URL.createObjectURL(file);
+      ownedUrls.current.add(url);
+      pendingUrls.current.add(url);
+      const token = generation.current;
       const img = new Image();
+      img.onerror = () => {
+        pendingUrls.current.delete(url);
+        ownedUrls.current.delete(url);
+        URL.revokeObjectURL(url);
+      };
       img.onload = () => {
+        pendingUrls.current.delete(url);
+        if (token !== generation.current) {
+          ownedUrls.current.delete(url);
+          URL.revokeObjectURL(url);
+          return;
+        }
         const naturalWidth = img.naturalWidth || 1;
         const naturalHeight = img.naturalHeight || 1;
         const aspectRatio = naturalWidth / naturalHeight;
@@ -91,13 +132,7 @@ export function useArtworkLayers() {
   );
 
   const removeLayer = useCallback((id: string) => {
-    setLayers((prev) => {
-      const layer = prev.find((l) => l.id === id);
-      if (layer) {
-        URL.revokeObjectURL(layer.url);
-      }
-      return prev.filter((l) => l.id !== id);
-    });
+    setLayers(prev => prev.filter(layer => layer.id !== id));
     setSelectedLayerId((prev) => (prev === id ? null : prev));
   }, []);
 
@@ -176,10 +211,8 @@ export function useArtworkLayers() {
   }, []);
 
   const clearAll = useCallback(() => {
-    setLayers((prev) => {
-      prev.forEach((l) => URL.revokeObjectURL(l.url));
-      return [];
-    });
+    cancelPending();
+    setLayers([]);
     setSelectedLayerId(null);
     setVectorLocked(false);
     setMaterialType('white_cardboard');
@@ -188,15 +221,27 @@ export function useArtworkLayers() {
   }, []);
 
   const clearLayers = useCallback(() => {
-    setLayers((prev) => {
-      prev.forEach((layer) => URL.revokeObjectURL(layer.url));
-      return [];
-    });
+    cancelPending();
+    setLayers([]);
     setSelectedLayerId(null);
     setVectorLocked(false);
   }, []);
 
+  // Caller pre-decodes every image before this synchronous, atomic commit.
+  const restoreProject = useCallback((artwork: ProjectArtwork) => {
+    const next = artworkSchema.parse(artwork);
+    cancelPending();
+    setLayers(next.layers);
+    setSelectedLayerId(null);
+    setVectorLocked(next.vectorLocked);
+    setMaterialType(next.materialType);
+    setExteriorColor(next.exteriorColor);
+    setInteriorColor(next.interiorColor);
+  }, [cancelPending]);
+
   return {
+    restoreProject,
+    hasPendingImages: () => pendingUrls.current.size > 0,
     layers,
     selectedLayerId,
     vectorLocked,

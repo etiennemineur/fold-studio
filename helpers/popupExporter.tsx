@@ -1,10 +1,5 @@
 import { PopupDocument, getPopupPatternFoldData } from "./popupDocument";
-// @ts-ignore
-import * as pdfMake from "pdfmake/build/pdfmake";
-// @ts-ignore
-import * as pdfFonts from "pdfmake/build/vfs_fonts";
-
-(pdfMake as any).addVirtualFileSystem(pdfFonts);
+import { loadPdfEngine } from './loadPdfEngine';
 
 export function exportPopupJSON(doc: PopupDocument): string {
   return JSON.stringify(doc, null, 2);
@@ -43,7 +38,7 @@ Spot colors: CUT=#FF00FF (Magenta), MOUNTAIN_FOLD=#0055FF (Blue), VALLEY_FOLD=#0
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#000" />
     </marker>
   </defs>
-  <title>${name} - Pop-up Pattern</title>
+  <title>${name.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]!)} - Pop-up Pattern</title>
 `;
 
   // GLUE ZONES Layer
@@ -109,8 +104,7 @@ Spot colors: CUT=#FF00FF (Magenta), MOUNTAIN_FOLD=#0055FF (Blue), VALLEY_FOLD=#0
   return svg;
 }
 
-export function exportPopupPDF(doc: PopupDocument, projectName: string): Promise<Blob> {
-  return new Promise((resolve) => {
+export async function exportPopupPDF(doc: PopupDocument, projectName: string): Promise<Blob> {
     const foldData = getPopupPatternFoldData(doc);
     const name = projectName || 'Untitled Pop-up';
     
@@ -261,9 +255,7 @@ export function exportPopupPDF(doc: PopupDocument, projectName: string): Promise
       });
     });
 
+    const pdfMake = await loadPdfEngine();
     const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-    pdfDocGenerator.getBlob((blob: Blob) => {
-      resolve(blob);
-    });
-  });
+    return new Promise<Blob>(resolve => pdfDocGenerator.getBlob(resolve));
 }

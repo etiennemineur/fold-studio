@@ -29,7 +29,28 @@ export function getDefaultSpirogamiParams(): SpirogamiParams {
   };
 }
 
+// Shared by numeric controls and both public generators (including restored projects).
+export const SPIROGAMI_BOUNDS = {
+  discRadius: [50, 200], innerRadius: [5, 50], turns: [1, 10],
+  stripHeight: [5, 100], stripWidth: [2, 20], gapWidth: [0.5, 10],
+  paperThickness: [0.1, 5], segmentsPerTurn: [8, 128],
+} as const;
+
+export function normalizeSpirogamiParams(params: SpirogamiParams): SpirogamiParams {
+  const result = { ...params };
+  const defaults = getDefaultSpirogamiParams();
+  for (const key of Object.keys(SPIROGAMI_BOUNDS) as (keyof typeof SPIROGAMI_BOUNDS)[]) {
+    const [min, max] = SPIROGAMI_BOUNDS[key];
+    const value = Number.isFinite(params[key]) ? params[key] : defaults[key];
+    result[key] = Math.max(min, Math.min(max, value));
+  }
+  result.segmentsPerTurn = Math.round(result.segmentsPerTurn);
+  return result;
+}
+
 export function generateSpirogamiMeshData(params: SpirogamiParams, progress: number) {
+  params = normalizeSpirogamiParams(params);
+  progress = Number.isFinite(progress) ? Math.max(0, Math.min(1, progress)) : 0;
   const numSegments = Math.floor(params.turns * params.segmentsPerTurn);
   const dTheta = (Math.PI * 2) / params.segmentsPerTurn;
   const rStep = (params.stripWidth + params.gapWidth) / (Math.PI * 2);
@@ -204,6 +225,7 @@ export function generateSpirogamiMeshData(params: SpirogamiParams, progress: num
 }
 
 export function generateSpirogamiFlatFoldData(params: SpirogamiParams): FoldData {
+  params = normalizeSpirogamiParams(params);
   const verticesCoords: [number, number, number?][] = [];
   const edgesVertices: [number, number][] = [];
   const edgesAssignment: ('M' | 'V' | 'B' | 'F')[] = [];

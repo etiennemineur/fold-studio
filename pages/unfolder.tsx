@@ -42,6 +42,7 @@ import { StudioSelectionControls } from "../components/StudioSelectionControls";
 import { useArtworkLayers } from "../helpers/useArtworkLayers";
 import { setFoldEdgeAssignment, toggleFoldEdgeAssignment } from "../helpers/foldEdgeInteraction";
 
+import { FoldPlayback } from "../components/FoldPlayback";
 import styles from "./unfolder.module.css";
 
 declare global {
@@ -150,6 +151,8 @@ export default function UnfolderPage() {
     setSelectedEdgeIndex(null);
   };
 
+  const [unfoldRevision, setUnfoldRevision] = useState(0);
+
   // Perform Unfolding
   useEffect(() => {
     if (!parsedMesh) {
@@ -185,11 +188,11 @@ export default function UnfolderPage() {
     }, 50);
 
     return () => clearTimeout(timer);
-  }, [parsedMesh, params.glueTabSize, params.glueTabAngle]);
+  }, [parsedMesh, params.glueTabSize, params.glueTabAngle, unfoldRevision]);
 
   const forceReunfold = () => {
-    // Triggers a re-render/re-unfold artificially
-    setParams(p => ({ ...p }));
+    // Explicit invalidation: parameters can remain identical.
+    setUnfoldRevision(revision => revision + 1);
   };
 
   const handleToggleEdge = (edgeIndex: number) => {
@@ -582,27 +585,7 @@ export default function UnfolderPage() {
           </div>
           
           {unfoldResult?.foldData && (
-            <div className={styles.progressContainer}>
-              <span className={styles.progressLabel}>Fold Progress</span>
-              <div className={styles.progressSlider}>
-                <Slider 
-                  value={[progress]} 
-                  onValueChange={v => setProgress(v[0])} 
-                  max={100} 
-                  step={0.5} 
-                />
-              </div>
-              <div className={styles.progressActions}>
-                <button 
-                  className={`${styles.layerToggle} ${!sequential ? styles.layerToggleInactive : ''}`}
-                  onClick={() => setSequential(s => !s)}
-                  title="Sequential animation"
-                >
-                  Sequential
-                </button>
-                <span className={styles.progressValue}>{progress.toFixed(0)}%</span>
-              </div>
-            </div>
+            <FoldPlayback progress={progress} onChange={setProgress} sequential={sequential} onSequentialChange={() => setSequential(s => !s)} />
           )}
         </ResizablePanel>
         

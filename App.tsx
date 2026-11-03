@@ -1,25 +1,26 @@
-import React, { useEffect } from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { GlobalContextProviders } from "./components/_globalContextProviders";
 const Page_0 = () => <Navigate to="/studio" replace />;
 import PageLayout_0 from "./pages/login.pageLayout.tsx";
 import Page_1 from "./pages/_index.tsx";
 import PageLayout_1 from "./pages/_index.pageLayout.tsx";
-import Page_2 from "./pages/studio.tsx";
+const Page_2 = lazy(() => import("./pages/studio.tsx"));
 import PageLayout_2 from "./pages/studio.pageLayout.tsx";
-import Page_3 from "./pages/unfolder.tsx";
+const Page_3 = lazy(() => import("./pages/unfolder.tsx"));
 import PageLayout_3 from "./pages/unfolder.pageLayout.tsx";
 
 if (!window.requestIdleCallback) {
   window.requestIdleCallback = (cb) => {
-    setTimeout(cb, 1);
+    return window.setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1);
   };
+  window.cancelIdleCallback = handle => window.clearTimeout(handle);
 }
 
 import "./base.css";
 
 const fileNameToRoute = new Map([["./pages/login.tsx","/login"],["./pages/_index.tsx","/"],["./pages/studio.tsx","/studio"],["./pages/unfolder.tsx","/unfolder"]]);
-const fileNameToComponent = new Map([
+const fileNameToComponent = new Map<string, React.ComponentType>([
     ["./pages/login.tsx", Page_0],
 ["./pages/_index.tsx", Page_1],
 ["./pages/studio.tsx", Page_2],
@@ -28,7 +29,7 @@ const fileNameToComponent = new Map([
 
 function makePageRoute(filename: string) {
   const Component = fileNameToComponent.get(filename);
-  return <Component />;
+  return Component ? <Component /> : <NotFound />;
 }
 
 function toElement({
@@ -93,7 +94,7 @@ function NotFound() {
     <div>
       <h1>Not Found</h1>
       <p>The page you are looking for does not exist.</p>
-      <p>Go back to the <a href="/" style={{ color: 'blue' }}>home page</a>.</p>
+      <p>Go back to the <a href={import.meta.env.BASE_URL} style={{ color: 'blue' }}>home page</a>.</p>
     </div>
   );
 }
@@ -119,9 +120,10 @@ export default function ScrollManager() {
 
 export function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/+$/, "")} future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/+$/, "")}>
       <ScrollManager />
       <GlobalContextProviders>
+        <Suspense fallback={<div role="status" style={{ padding: 24 }}>Loading Fold Studio…</div>}>
         <Routes>
           {toElement({ trie: buildLayoutTrie({
 "./pages/login.tsx": PageLayout_0,
@@ -131,6 +133,7 @@ export function App() {
 }), fileNameToRoute, makePageRoute })} 
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </GlobalContextProviders>
     </BrowserRouter>
   );

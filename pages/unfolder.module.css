@@ -239,40 +239,15 @@
   color: var(--muted-foreground);
 }
 
-.progressContainer {
-  display: grid;
-  grid-template-columns: auto minmax(100px, 1fr) auto;
-  align-items: center;
-  gap: var(--spacing-4);
-  background-color: color-mix(in srgb, var(--surface) 90%, black);
-  border-top: 1px solid var(--border);
-  padding: 0 var(--spacing-4);
-  min-height: 44px;
-  z-index: 2;
-}
-
-.progressSlider {
-  min-width: 0;
-}
-
-.progressActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--spacing-3);
-}
-
-.progressLabel {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted-foreground);
-  font-weight: 600;
-}
-
-.progressValue {
-  font-family: var(--font-family-monospace);
-  font-size: 0.875rem;
-  color: var(--primary);
-  font-weight: 700;
+/* Stack rather than squeeze three editors into unusable narrow strips. */
+@media (max-width: 800px) {
+  .workspace { overflow-y: auto; display: block; }
+  .workspace > :global([data-panel-group]) { display: flex !important; flex-direction: column !important; height: auto !important; overflow: visible !important; }
+  .workspace :global([data-panel]) { flex: none !important; width: 100% !important; overflow: visible !important; }
+  .workspace :global([data-panel-resize-handle-id]) { display: none; }
+  .sidebarPanel { max-height: 340px; overflow-y: auto !important; }
+  .viewPanel { height: 560px; min-height: 560px; border-left: 0; border-top: 1px solid var(--border); }
+  .viewHeader { height: auto; min-height: 44px; flex-wrap: wrap; gap: 8px; padding: 8px; }
+  .viewHeader > div { flex-wrap: wrap; min-width: 0; }
+  .viewCanvasContainer { min-height: 220px; }
 }

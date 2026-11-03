@@ -81,6 +81,9 @@ export function validatePopupDocument(doc: PopupDocument, bookAngleDeg?: number)
   
   const addIssue = (issue: ValidationIssue) => {
     issues.push(issue);
+    if (!issue.mechanismId && issue.severity === 'error') {
+      for (const id of mechanismStatuses.keys()) mechanismStatuses.set(id, 'invalid');
+    }
     if (issue.mechanismId) {
       const current = mechanismStatuses.get(issue.mechanismId) || 'valid';
       if (issue.severity === 'error') {
@@ -166,7 +169,7 @@ export function validatePopupDocument(doc: PopupDocument, bookAngleDeg?: number)
       });
     }
   } catch (e) {
-    // Kinematics might fail if data geometry is strictly invalid
+    addIssue({ severity: 'error', category: 'closure', message: 'Closure could not be verified: the kinematic solver failed.' });
   }
 
   // 5. Tab size
@@ -246,7 +249,8 @@ export function validatePopupDocument(doc: PopupDocument, bookAngleDeg?: number)
         break;
       }
     } catch (e) {
-      // Geometry might fail intermediate state solves for extreme angles
+      addIssue({ severity: 'error', category: 'collision', message: `Collision check could not be completed at ${angle}°: the kinematic solver failed.` });
+      break;
     }
   }
   

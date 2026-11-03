@@ -16,22 +16,23 @@ export function objParser(objText: string): ParsedMesh {
   const lines = objText.split('\n');
   
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    const line = lines[i].split('#', 1)[0].trim();
     if (!line || line.startsWith('#')) continue;
     
     const parts = line.split(/\s+/);
     const type = parts[0];
     
-    if (type === 'v' && parts.length >= 4) {
-      vertices.push([parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])]);
-    } else if (type === 'vn' && parts.length >= 4) {
-      normals.push([parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])]);
+    if (type === 'v' || type === 'vn') {
+      const xyz = parts.slice(1, 4).map(Number);
+      if (xyz.length !== 3 || !xyz.every(Number.isFinite)) throw new Error(`Invalid OBJ coordinate at line ${i + 1}.`);
+      (type === 'v' ? vertices : normals).push(xyz as [number, number, number]);
     } else if (type === 'f') {
       const face: number[] = [];
       for (let j = 1; j < parts.length; j++) {
         const vPart = parts[j].split('/')[0];
         if (vPart) {
-          let vIdx = parseInt(vPart, 10);
+          if (!/^-?[1-9]\d*$/.test(vPart)) throw new Error(`Invalid OBJ vertex index at line ${i + 1}.`);
+          let vIdx = Number(vPart);
           if (vIdx < 0) {
             // Negative indices are relative to the end of the current vertex list
             vIdx = vertices.length + vIdx;
@@ -39,15 +40,17 @@ export function objParser(objText: string): ParsedMesh {
             // OBJ indices are 1-based, converting to 0-based
             vIdx -= 1;
           }
+          if (!Number.isSafeInteger(vIdx) || vIdx < 0 || vIdx >= vertices.length) throw new Error(`OBJ face references an unavailable vertex at line ${i + 1}.`);
           face.push(vIdx);
         }
       }
-      if (face.length >= 3) {
-        faces.push(face);
-      }
+      if (face.length < 3 || new Set(face).size !== face.length) throw new Error(`OBJ face must have at least three distinct vertices at line ${i + 1}.`);
+      faces.push(face);
     }
   }
   
+  if (!vertices.length || !faces.length) throw new Error('The OBJ contains no usable polygon mesh.');
+
   // Normalize to 100mm bounding box
   if (vertices.length > 0) {
     let minX = Infinity, minY = Infinity, minZ = Infinity;
@@ -62,15 +65,16 @@ export function objParser(objText: string): ParsedMesh {
       if (v[2] > maxZ) maxZ = v[2];
     }
 
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    const centerZ = (minZ + maxZ) / 2;
+    const centerX = minX / 2 + maxX / 2;
+    const centerY = minY / 2 + maxY / 2;
+    const centerZ = minZ / 2 + maxZ / 2;
 
     const extentX = maxX - minX;
     const extentY = maxY - minY;
     const extentZ = maxZ - minZ;
 
     const maxExtent = Math.max(extentX, extentY, extentZ);
+    if (!Number.isFinite(maxExtent) || maxExtent <= 0) throw new Error('OBJ mesh dimensions are degenerate or out of range.');
 
     if (maxExtent > 0) {
       for (let i = 0; i < vertices.length; i++) {

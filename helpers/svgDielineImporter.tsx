@@ -115,14 +115,14 @@ function tessellateArc(x1: number, y1: number, rx: number, ry: number, xAxisRota
 
 export function svgDielineImporter(svgString: string): { foldData: FoldData; warnings: string[] } {
   const warnings: string[] = [];
-  const segments: { p1: [number, number]; p2: [number, number]; color: string; layer: string }[] = [];
+  const segments: { p1: [number, number]; p2: [number, number]; color: string; layer: string; dashed: boolean }[] = [];
 
   // Phase 1: SVG Parsing
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgString, "image/svg+xml");
   const parserError = doc.querySelector("parsererror");
-  if (parserError) {
-    warnings.push("SVG parsing error detected. The output may be incomplete.");
+  if (parserError || doc.documentElement?.localName !== 'svg') {
+    throw new Error('Invalid SVG document. Check that the file is a complete SVG cutting pattern.');
   }
 
   function applyTransformString(transform: string, mPrev: number[]): number[] {
@@ -173,7 +173,7 @@ export function svgDielineImporter(svgString: string): { foldData: FoldData; war
     return [m[0] * pt[0] + m[2] * pt[1] + m[4], m[1] * pt[0] + m[3] * pt[1] + m[5]];
   }
 
-  function traverse(node: Element, currentMatrix: number[], currentColor: string, parentLayer: string) {
+  function traverse(node: Element, currentMatrix: number[], currentColor: string, parentLayer: string, parentDash = "none") {
     const tag = node.tagName.toLowerCase();
     if (tag === "defs" || tag === "style" || tag === "title" || tag === "desc" || tag === "metadata") return;
 
@@ -195,6 +195,11 @@ export function svgDielineImporter(svgString: string): { foldData: FoldData; war
       m = applyTransformString(transAttr, m);
     }
 
+    if (/^(?:defs|symbol|clipPath|mask|marker|pattern|metadata|script|foreignObject)$/i.test(tag)) return;
+    const visibility = node.getAttribute('style') || '';
+    if (node.getAttribute('display') === 'none' || /(?:^|;)\s*display\s*:\s*none\b/i.test(visibility)) return;
+    if (layerName.match(/FOND_PERDU|BLEED|COLLAGE|GLUE|ARTWORK|MARKS|REGISTRATION/i)) return;
+
     let color = currentColor;
     const strokeAttr = node.getAttribute("stroke");
     if (strokeAttr) color = strokeAttr;
@@ -204,6 +209,9 @@ export function svgDielineImporter(svgString: string): { foldData: FoldData; war
       const mStyle = styleAttr.match(/stroke:\s*([^;]+)/i);
       if (mStyle) color = mStyle[1].trim();
     }
+
+    const dash = styleAttr?.match(/(?:^|;)\s*stroke-dasharray:\s*([^;]+)/i)?.[1]?.trim() || node.getAttribute('stroke-dasharray') || parentDash;
+    const dashed = dash !== 'none' && (dash.match(/[\d.]+/g) || []).some(n => Number(n) > 0);
 
     if (tag === "polygon" || tag === "polyline" || tag === "path") {
       const fillAttr = node.getAttribute("fill") || "";
@@ -220,7 +228,7 @@ export function svgDielineImporter(svgString: string): { foldData: FoldData; war
 
       if (isBleedLayer || (hasFill && !hasStroke)) {
         for (let i = 0; i < node.children.length; i++) {
-          traverse(node.children[i], m, color, layerName);
+          traverse(node.children[i], m, color, layerName, dash);
         }
         return;
       }
@@ -228,9 +236,11 @@ export function svgDielineImporter(svgString: string): { foldData: FoldData; war
 
     if (color && color.toLowerCase() !== "none" && color.toLowerCase() !== "transparent") {
       const addSeg = (x1: number, y1: number, x2: number, y2: number) => {
+        if (![x1, y1, x2, y2, ...m].every(Number.isFinite)) throw new Error('SVG contains non-finite coordinates.');
         const p1 = applyTransform([x1, y1], m);
         const p2 = applyTransform([x2, y2], m);
-        segments.push({ p1, p2, color, layer: layerName });
+        if (![...p1, ...p2].every(Number.isFinite)) throw new Error('SVG transform exceeds the supported coordinate range.');
+        segments.push({ p1, p2, color, layer: layerName, dashed });
       };
 
       if (tag === "line") {
@@ -270,13 +280,13 @@ export function svgDielineImporter(svgString: string): { foldData: FoldData; war
         const nextNum = () => {
           if (i < tokens.length) {
             const n = parseFloat(tokens[i]);
-            if (!isNaN(n)) { i++; return n; }
+            if (Number.isFinite(n)) { i++; return n; }
           }
-          return 0;
+          throw new Error("Invalid SVG path: missing or non-finite coordinate.");
         };
 
         while (i < tokens.length) {
-          if (/[a-zA-Z]/.test(tokens[i])) cmd = tokens[i++];
+          if (/^[a-zA-Z]$/.test(tokens[i])) cmd = tokens[i++];
 
           switch (cmd) {
             case "M":
@@ -456,13 +466,79 @@ export function svgDielineImporter(svgString: string): { foldData: FoldData; war
     }
 
     for (let i = 0; i < node.children.length; i++) {
-      traverse(node.children[i], m, color, layerName);
+      traverse(node.children[i], m, color, layerName, dash);
     }
   }
 
   if (doc.documentElement) {
-    traverse(doc.documentElement, [1, 0, 0, 1, 0, 0], "none", "");
+    const svg = doc.documentElement;
+    // SVG user coordinates are not millimetres. Preserve physical size before
+    // welding vertices, so the same tolerance applies to every document scale.
+    const units: Record<string, number> = { mm: 1, cm: 10, in: 25.4, pt: 25.4 / 72, pc: 25.4 / 6, px: 25.4 / 96, '': 25.4 / 96 };
+    const lengthMM = (value: string | null): number | null => {
+      const match = value?.trim().match(/^([+]?(?:\d*\.\d+|\d+\.?)(?:e[+-]?\d+)?)\s*(mm|cm|in|pt|pc|px)?$/i);
+      if (!match) return null;
+      const result = Number(match[1]) * units[(match[2] || '').toLowerCase()];
+      return Number.isFinite(result) && result > 0 ? result : null;
+    };
+    const vb = (svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+    let viewport = [25.4 / 96, 0, 0, 25.4 / 96, 0, 0];
+    if (vb.length === 4 && vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0) {
+      const width = lengthMM(svg.getAttribute('width'));
+      const height = lengthMM(svg.getAttribute('height'));
+      let sx = width ? width / vb[2] : height ? height / vb[3] : 25.4 / 96;
+      let sy = height ? height / vb[3] : sx;
+      const aspect = svg.getAttribute('preserveAspectRatio') || 'xMidYMid meet';
+      if (!aspect.includes('none')) sx = sy = aspect.includes('slice') ? Math.max(sx, sy) : Math.min(sx, sy);
+      const ax = aspect.includes('xMax') ? 1 : aspect.includes('xMin') || aspect.includes('none') ? 0 : 0.5;
+      const ay = aspect.includes('YMax') ? 1 : aspect.includes('YMin') || aspect.includes('none') ? 0 : 0.5;
+      viewport = [sx, 0, 0, sy, -vb[0] * sx + (width ? (width - vb[2] * sx) * ax : 0), -vb[1] * sy + (height ? (height - vb[3] * sy) * ay : 0)];
+      if (!width && !height) warnings.push('No physical SVG dimensions: interpreted at 96 pixels per inch. Check the imported size before cutting.');
+    }
+    traverse(svg, viewport, "none", "");
   }
+
+  // Planar arrangement: every crossing and T-junction must become a shared
+  // vertex BEFORE face traversal. Welding endpoints alone silently loses folds.
+  if (segments.length > 4000) throw new Error('SVG is too detailed (more than 4000 segments). Simplify the cutting paths before importing.');
+  const splitParams = segments.map(() => [0, 1]);
+  const cross = (ax: number, ay: number, bx: number, by: number) => ax * by - ay * bx;
+  const splitAtEndpoint = (i: number, point: [number, number]) => {
+    const s = segments[i], dx = s.p2[0] - s.p1[0], dy = s.p2[1] - s.p1[1];
+    const length2 = dx * dx + dy * dy;
+    if (length2 < 1e-16) return;
+    const t = ((point[0] - s.p1[0]) * dx + (point[1] - s.p1[1]) * dy) / length2;
+    if (t > 0 && t < 1 && Math.hypot(s.p1[0] + t * dx - point[0], s.p1[1] + t * dy - point[1]) < 1e-7) splitParams[i].push(t);
+  };
+  for (let i = 0; i < segments.length; i++) {
+    const a = segments[i], rx = a.p2[0] - a.p1[0], ry = a.p2[1] - a.p1[1];
+    for (let j = i + 1; j < segments.length; j++) {
+      const b = segments[j];
+      if (Math.max(a.p1[0], a.p2[0]) + 1e-7 < Math.min(b.p1[0], b.p2[0]) || Math.max(b.p1[0], b.p2[0]) + 1e-7 < Math.min(a.p1[0], a.p2[0]) || Math.max(a.p1[1], a.p2[1]) + 1e-7 < Math.min(b.p1[1], b.p2[1]) || Math.max(b.p1[1], b.p2[1]) + 1e-7 < Math.min(a.p1[1], a.p2[1])) continue;
+      const sx = b.p2[0] - b.p1[0], sy = b.p2[1] - b.p1[1], den = cross(rx, ry, sx, sy);
+      if (Math.abs(den) > 1e-10 * Math.hypot(rx, ry) * Math.hypot(sx, sy)) {
+        const qx = b.p1[0] - a.p1[0], qy = b.p1[1] - a.p1[1];
+        const t = cross(qx, qy, sx, sy) / den, u = cross(qx, qy, rx, ry) / den;
+        if (t >= -1e-9 && t <= 1 + 1e-9 && u >= -1e-9 && u <= 1 + 1e-9) {
+          splitParams[i].push(Math.max(0, Math.min(1, t)));
+          splitParams[j].push(Math.max(0, Math.min(1, u)));
+        }
+      } else {
+        splitAtEndpoint(i, b.p1); splitAtEndpoint(i, b.p2);
+        splitAtEndpoint(j, a.p1); splitAtEndpoint(j, a.p2);
+      }
+    }
+  }
+  const planarSegments: typeof segments = [];
+  segments.forEach((s, i) => {
+    const ts = [...new Set(splitParams[i])].sort((a, b) => a - b);
+    const point = (t: number): [number, number] => [s.p1[0] + t * (s.p2[0] - s.p1[0]), s.p1[1] + t * (s.p2[1] - s.p1[1])];
+    for (let j = 1; j < ts.length; j++) {
+      if (ts[j] - ts[j - 1] < 1e-10) continue;
+      planarSegments.push({ ...s, p1: point(ts[j - 1]), p2: point(ts[j]) });
+      if (planarSegments.length > 20000) throw new Error('SVG has too many intersecting paths. Simplify the cutting paths before importing.');
+    }
+  });
 
   // Phase 2: Vertex Welding
   const verticesCoords: [number, number][] = [];
@@ -558,7 +634,7 @@ if (r > 120 && b > 120 && g < Math.min(r, b) * 0.75) return { assign: "B", angle
   const priority: Record<string, number> = { B: 3, M: 2, V: 1, F: 0, UNKNOWN: -1 };
   const detectedLayers = new Set<string>();
 
-  for (const seg of segments) {
+  for (const seg of planarSegments) {
     if (seg.layer) detectedLayers.add(seg.layer);
 
     const v1 = addVertex(seg.p1[0], seg.p1[1]);
@@ -569,6 +645,9 @@ if (r > 120 && b > 120 && g < Math.min(r, b) * 0.75) return { assign: "B", angle
     if (!rgb) continue;
 
     let mapped = mapColorToAssignment(rgb, seg.layer);
+    if (seg.dashed && rgb.every(c => c < 50) && !/DECOUPE|CUT|COLLAGE|GLUE|FOND_PERDU|BLEED/i.test(seg.layer)) {
+      mapped = { assign: 'V', angle: 90 };
+    }
     if (!mapped) continue;
 
     if (mapped.assign === "UNKNOWN") {
@@ -691,43 +770,17 @@ if (r > 120 && b > 120 && g < Math.min(r, b) * 0.75) return { assign: "B", angle
     }
   }
 
-  // Determine areas and systematically discard outer/unbounded faces
-  let maxAbsArea = -1;
-  let maxAbsIndex = -1;
-  const faceAreas = rawFaces.map((f, i) => {
-    let area = 0;
-    for (let j = 0; j < f.length; j++) {
-      const p1 = verticesCoords[f[j]];
-      const p2 = verticesCoords[f[(j + 1) % f.length]];
-      area += p1[0] * p2[1] - p2[0] * p1[1];
+  // The clockwise successor around each vertex walks bounded faces with
+  // positive signed area and the exterior with negative area. Filter per
+  // cycle, not by globally largest polygon (there may be several islands).
+  const validFaces = rawFaces.filter(face => {
+    let twiceArea = 0;
+    for (let i = 0; i < face.length; i++) {
+      const a = verticesCoords[face[i]], b = verticesCoords[face[(i + 1) % face.length]];
+      twiceArea += a[0] * b[1] - b[0] * a[1];
     }
-    area /= 2;
-    if (Math.abs(area) > maxAbsArea) {
-      maxAbsArea = Math.abs(area);
-      maxAbsIndex = i;
-    }
-    return area;
+    return twiceArea > 2e-5;
   });
-
-  // Explicitly follow instruction: discard the absolute largest face
-  if (maxAbsIndex !== -1) {
-    rawFaces.splice(maxAbsIndex, 1);
-    faceAreas.splice(maxAbsIndex, 1);
-  }
-
-  const validFaces: number[][] = [];
-  for (let i = 0; i < rawFaces.length; i++) {
-    const f = rawFaces[i];
-    let area = faceAreas[i];
-    
-    if (area < -1e-5) {
-      // Reverse CW back to CCW as requested
-      f.reverse();
-    }
-    if (Math.abs(area) > 1e-5) {
-      validFaces.push(f);
-    }
-  }
 
   // Deduplicate identical faces (prevents island outer boundaries from stacking)
   const uniqueFaces = new Map<string, number[]>();
@@ -738,7 +791,7 @@ if (r > 120 && b > 120 && g < Math.min(r, b) * 0.75) return { assign: "B", angle
   const deduplicatedFaces = Array.from(uniqueFaces.values());
 
   if (deduplicatedFaces.length === 0) {
-    warnings.push("No valid polygonal faces could be detected. Check for disconnected lines or gaps in the dieline.");
+    throw new Error('No closed panels found. Check that cut and fold lines form a complete cutting pattern.');
   }
 
   console.log(`[SVG Import] Faces detected: ${deduplicatedFaces.length}`);

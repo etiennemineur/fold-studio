@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {transformSync} from 'esbuild';
+const module={exports:{}};
+const fd={verticesCoords:[[0,0],[10,0],[10,10],[0,10]],facesVertices:[[0,1,2,3]],edgesVertices:[[0,1],[1,2],[2,3],[3,0]],edgesAssignment:['B','B','B','B']};
+const stubs={'./popupDocument':{getPopupPatternFoldData:()=>fd},'./popupKinematicSolver':{solvePopupKinematics:()=>{throw Error('simulated solver failure')}},'./collisionDetection':{collisionDetection:()=>({collisionPairs:[],hasCollisions:false})}};
+const code=transformSync(fs.readFileSync('helpers/popupValidation.tsx','utf8'),{loader:'tsx',format:'cjs'}).code;
+vm.runInNewContext(code,{module,exports:module.exports,require:n=>{if(!(n in stubs))throw Error(n);return stubs[n];}});
+const verdict=module.exports.validatePopupDocument({bookWidth:150,bookHeight:200,paperThickness:0.5,mechanisms:[]});
+assert.equal(verdict.status,'invalid','Solver failure must never be a valid document');
+assert.ok(verdict.issues.some(i=>i.category==='closure'&&i.severity==='error'));
+assert.ok(verdict.issues.some(i=>i.category==='collision'&&i.severity==='error'));
+console.log('PASS popup validation fails closed when solver throws');

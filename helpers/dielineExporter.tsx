@@ -1,18 +1,11 @@
 import { FoldData, BoxParams, buildFaceTree, FaceTreeNode } from "./foldEngine";
 import { ArtworkLayer } from "./useArtworkLayers";
-// @ts-ignore
-import * as pdfMake from "pdfmake/build/pdfmake";
-
-// @ts-ignore
-import * as pdfFonts from "pdfmake/build/vfs_fonts";
-// @ts-ignore
-import styles from "./dielineExporter.module.css";
-
-// Initialize pdfmake with the virtual file system containing Roboto fonts
-(pdfMake as any).addVirtualFileSystem(pdfFonts);
+import { preparePdfArtwork } from './pdfArtwork';
+import { loadPdfEngine } from './loadPdfEngine';
 
 async function blobUrlToBase64(url: string): Promise<string> {
   const response = await fetch(url);
+  if (!response.ok) throw new Error(`Artwork could not be loaded (${response.status}).`);
   const blob = await response.blob();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -266,7 +259,7 @@ IMPORTANT: Set all CUT and FOLD strokes to Overprint in your print software
   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
   
-  <title>${name} - Dieline</title>
+  <title>${name.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]!) } - Dieline</title>
 `;
 
   // ARTWORK Layer
@@ -388,8 +381,7 @@ IMPORTANT: Set all CUT and FOLD strokes to Overprint in your print software
 /**
  * Generates a PDF blob representing the dieline utilizing pdfmake canvas functions.
  */
-function exportDielinePDF(foldData: FoldData, params: BoxParams, projectName: string, artworkLayers?: ArtworkLayer[]): Promise<Blob> {
-  return new Promise(async (resolve) => {
+async function exportDielinePDF(foldData: FoldData, params: BoxParams, projectName: string, artworkLayers?: ArtworkLayer[]): Promise<Blob> {
     const name = projectName || 'Untitled Project';
     const bleed = params.bleedSize || 0;
     const thickness = params.materialThickness || 0.5;
@@ -577,11 +569,12 @@ function exportDielinePDF(foldData: FoldData, params: BoxParams, projectName: st
       for (const layer of artworkLayers) {
         if (!layer.visible) continue;
         const base64 = await blobUrlToBase64(layer.url);
+        const rendered = await preparePdfArtwork(layer, base64);
         docDefinition.content.push({
-          image: base64,
-          width: layer.width * MM_TO_PT,
-          height: layer.height * MM_TO_PT,
-          absolutePosition: { x: mapX(layer.x), y: mapY(layer.y) }
+          image: rendered.source,
+          width: rendered.width * MM_TO_PT,
+          height: rendered.height * MM_TO_PT,
+          absolutePosition: { x: mapX(rendered.x), y: mapY(rendered.y) }
         });
       }
     }
@@ -634,11 +627,9 @@ function exportDielinePDF(foldData: FoldData, params: BoxParams, projectName: st
       layout: 'noBorders'
     });
 
+    const pdfMake = await loadPdfEngine();
     const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-    pdfDocGenerator.getBlob((blob: Blob) => {
-      resolve(blob);
-    });
-  });
+    return new Promise<Blob>(resolve => pdfDocGenerator.getBlob(resolve));
 }
 
 export const dielineExporter = {

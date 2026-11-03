@@ -55,38 +55,43 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
           <div className={styles.navSeparator} />
           
-          <div className={styles.navTabs}>
+          <nav className={styles.navTabs} aria-label="Workshops">
             <Link 
               to="/studio?mode=packaging" 
               className={`${styles.navTab} ${isPackagingActive ? styles.navTabActive : ''}`}
+              aria-current={isPackagingActive ? 'page' : undefined}
             >
               Fold
             </Link>
             <Link 
               to="/unfolder" 
               className={`${styles.navTab} ${isUnfoldActive ? styles.navTabActive : ''}`}
+              aria-current={isUnfoldActive ? 'page' : undefined}
             >
               Unfold
             </Link>
             <Link 
               to="/studio?mode=origami" 
               className={`${styles.navTab} ${isOrigamiActive ? styles.navTabActive : ''}`}
+              aria-current={isOrigamiActive ? 'page' : undefined}
             >
               Origami
             </Link>
             <Link 
               to="/studio?mode=popup" 
               className={`${styles.navTab} ${isPopupActive ? styles.navTabActive : ''}`}
+              aria-current={isPopupActive ? 'page' : undefined}
             >
               Pop-Up
             </Link>
             <Link 
               to="/studio?mode=spirogami" 
               className={`${styles.navTab} ${isSpiroActive ? styles.navTabActive : ''}`}
+              aria-current={isSpiroActive ? 'page' : undefined}
             >
               Spirogami
             </Link>
-          </div>
+          </nav>
         </div>
         
         <div className={styles.actions}>
@@ -107,6 +112,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
               <div className={styles.aboutDivider} />
               <div className={styles.aboutSection}>
                 <h3 className={styles.aboutTitle}>Technologies</h3>
+                <p className={styles.aboutText}>
+                  Static edition: editing and exports run in your browser, with no accounts or AI services.
+                  Folding previews and intersection checks are design aids, not fabrication certification.
+                </p>
                 <ul className={styles.techList}>
                   <li>
                     <a href="https://react.dev" target="_blank" rel="noopener noreferrer" className={styles.aboutLink}>React</a>
@@ -125,20 +134,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     <span className={styles.techDesc}> — Type Safety</span>
                   </li>
                   <li>
-                    <a href="https://postgresql.org" target="_blank" rel="noopener noreferrer" className={styles.aboutLink}>PostgreSQL</a>
-                    <span className={styles.techDesc}> — Database</span>
-                  </li>
-                  <li>
                     <a href="https://pdfmake.github.io/docs" target="_blank" rel="noopener noreferrer" className={styles.aboutLink}>pdfmake</a>
                     <span className={styles.techDesc}> — PDF Export</span>
-                  </li>
-                  <li>
-                    <a href="https://openai.com" target="_blank" rel="noopener noreferrer" className={styles.aboutLink}>OpenAI</a>
-                    <span className={styles.techDesc}> — AI Photo Rendering</span>
-                  </li>
-                  <li>
-                    <a href="https://floot.app" target="_blank" rel="noopener noreferrer" className={styles.aboutLink}>Floot</a>
-                    <span className={styles.techDesc}> — Hosting & Infrastructure</span>
                   </li>
                 </ul>
               </div>

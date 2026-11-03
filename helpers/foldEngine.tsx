@@ -236,7 +236,8 @@ export function generatePyramidFoldData(params: BoxParams): FoldData {
 /**
  * Builds a directed tree of faces connected by hinges.
  * If rootFaceIndex is provided and is a valid index, it uses it as the root face.
- * Otherwise, it uses the auto-detected face with the most neighbors.
+ * Otherwise, it uses face 0, the canonical root used by the generators.
+ * This is a spanning forest, not a closed-loop constraint solver.
  */
 export function buildFaceTree(foldData: FoldData, rootFaceIndex?: number): FaceTreeNode[] {
   const visited = new Set<number>();
@@ -301,6 +302,28 @@ export function buildFaceTree(foldData: FoldData, rootFaceIndex?: number): FaceT
       adjacency.get(fB.face)!.push({ neighbor: fA.face, edge: [fB.v1, fB.v2], angle: fBAngle });
     }
   });
+
+  // Legacy generators (including double scoring) encode directed rotations
+  // for the canonical face-0 BFS tree. Preserve those forward transforms, but
+  // make the reverse traversal their inverse when the resting face changes.
+  // Face array order alone is insufficient: channel faces are appended last.
+  const canonicalVisited = new Set<number>();
+  for (let start = 0; start < foldData.facesVertices.length; start++) {
+    if (canonicalVisited.has(start)) continue;
+    canonicalVisited.add(start);
+    const queue = [start];
+    for (let head = 0; head < queue.length; head++) {
+      const parent = queue[head];
+      for (const forward of adjacency.get(parent)!) {
+        if (canonicalVisited.has(forward.neighbor)) continue;
+        canonicalVisited.add(forward.neighbor);
+        queue.push(forward.neighbor);
+        const reverse = adjacency.get(forward.neighbor)!.find(n => n.neighbor === parent)!;
+        const sameDirection = reverse.edge[0] === forward.edge[0];
+        reverse.angle = sameDirection ? -forward.angle : forward.angle;
+      }
+    }
+  }
 
   const bestRoot = 0;
 
@@ -435,7 +458,8 @@ export function computeFoldedVertices(
     function computeBasicDepths(node: FaceTreeNode, depth: number) {
       depthMap.set(node.faceIndex, depth);
       for (const child of node.children) {
-        computeBasicDepths(child, depth + 1);
+        // Rigid/flat joins carry their parent's motion, not a time slot.
+        computeBasicDepths(child, depth + (child.foldAngle === 0 ? 0 : 1));
       }
     }
     for (const root of tree) {
@@ -1112,6 +1136,12 @@ export function generateBoxFoldData(params: BoxParams): FoldData {
     [1, 25, 24, 10],    // 11: Tab br
     [11, 27, 26, 2]     // 12: Tab tr
   ];
+
+  // A zero-width glue tab is absent, not a degenerate folding panel.
+  if (T <= 0) {
+    facesVertices.splice(9);
+    verticesCoords.splice(20);
+  }
 
   const edgesVertices: [number, number][] = [];
   const edgesAssignment: ('M' | 'V' | 'B' | 'F')[] = [];

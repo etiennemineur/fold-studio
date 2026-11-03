@@ -290,75 +290,6 @@ opacity: 0.7;
   touch-action: none;
 }
 
-.progressContainer {
-  background-color: color-mix(in srgb, var(--surface) 90%, black);
-  border-top: 1px solid var(--border);
-  padding: var(--spacing-2) var(--spacing-4);
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  min-height: 44px;
-  box-sizing: border-box;
-}
-
-.progressLabel {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted-foreground);
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.progressSlider {
-  flex: 1;
-  min-width: 80px;
-}
-
-.progressActions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  flex-shrink: 0;
-}
-
-.popupPlaybackControls {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.progressIconButton {
-  width: 26px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--foreground);
-  cursor: pointer;
-}
-
-.progressIconButton:hover {
-  border-color: var(--border);
-  background: var(--background);
-}
-
-.progressIconButtonActive {
-  background: var(--primary);
-  color: var(--primary-foreground);
-}
-
-.progressValue {
-  font-family: var(--font-family-monospace);
-  font-size: 0.875rem;
-  color: var(--primary);
-  font-weight: 700;
-}
-
 .collapsedBar {
   display: flex;
   align-items: center;
@@ -390,4 +321,16 @@ opacity: 0.7;
 
 .workspace[data-animating] :global([data-panel]) {
   transition: flex-basis 0.5s ease, flex-grow 0.5s ease, flex-shrink 0.5s ease;
+}
+/* Stack rather than squeeze three editors into unusable narrow strips. */
+@media (max-width: 800px) {
+  .workspace { overflow-y: auto; display: block; }
+  .workspace > :global([data-panel-group]) { display: flex !important; flex-direction: column !important; height: auto !important; overflow: visible !important; }
+  .workspace :global([data-panel]) { flex: none !important; width: 100% !important; overflow: visible !important; }
+  .workspace :global([data-panel-resize-handle-id]) { display: none; }
+  .sidebarPanel { max-height: 340px; overflow-y: auto !important; }
+  .viewPanel { height: 560px; min-height: 560px; border-left: 0; border-top: 1px solid var(--border); }
+  .viewHeader { height: auto; min-height: 44px; flex-wrap: wrap; gap: 8px; padding: 8px; }
+  .viewHeader > div { flex-wrap: wrap; min-width: 0; }
+  .viewCanvasContainer { min-height: 220px; }
 }

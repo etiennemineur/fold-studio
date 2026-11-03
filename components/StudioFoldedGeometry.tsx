@@ -220,10 +220,11 @@ export function StudioFoldedGeometry({
     const canvas = document.createElement('canvas');
     const MAX_RES = 2048;
     const scale = Math.min(MAX_RES / w, MAX_RES / h);
-    const pixelRatio = Math.max(1, Math.min(scale, 4));
+    const pixelRatio = Math.min(scale, 4);
 
-    canvas.width = w * pixelRatio;
-    canvas.height = h * pixelRatio;
+    // Large physical patterns need sub-unit scaling; cap the actual allocation.
+    canvas.width = Math.max(1, Math.min(MAX_RES, Math.ceil(w * pixelRatio)));
+    canvas.height = Math.max(1, Math.min(MAX_RES, Math.ceil(h * pixelRatio)));
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
@@ -256,6 +257,10 @@ export function StudioFoldedGeometry({
     tex.colorSpace = THREE.SRGBColorSpace;
     return tex;
   }, [artworkLayers, foldData, textureVersion, exteriorColor]);
+
+  useEffect(() => {
+    return () => { compositeTexture?.dispose(); };
+  }, [compositeTexture]);
 
   const glueTabs = useMemo(() => dielineExporter.identifyGlueTabFaces(foldData), [foldData]);
 

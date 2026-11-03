@@ -168,8 +168,8 @@ export function StudioPackagingSidebar({
                         <SelectItem value="gable">Gable Box</SelectItem>
                         <SelectItem value="sealEnd">Seal End Box</SelectItem>
                         <SelectItem value="snapLock">Snap-Lock Tray</SelectItem>
-                        <SelectItem value="concentricRings">Concentric Rings</SelectItem>
-                        <SelectItem value="sineWaves">Sine Waves</SelectItem>
+                        <SelectItem value="concentricRings">Concentric Rings — experimental, non-rigid</SelectItem>
+                        <SelectItem value="sineWaves">Sine Waves — experimental, non-rigid</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -180,6 +180,11 @@ export function StudioPackagingSidebar({
               </div>
             </div>
             <div className={styles.paramGroup}>
+              {!importedMode && (shapeType === 'concentricRings' || shapeType === 'sineWaves') && (
+                <p role="note" className={styles.importWarningItem}>
+                  Experimental, non-rigid preview: faces deform during folding. These patterns are not validated for fabrication.
+                </p>
+              )}
               <label className={styles.paramLabel}>Width (mm)</label>
               <div className={styles.paramInputRow}>
                 <Slider 

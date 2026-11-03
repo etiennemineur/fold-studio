@@ -10,7 +10,6 @@ import { TemplateLibrary } from "../components/TemplateLibrary";
 import { PopupTemplateLibrary } from "../components/PopupTemplateLibrary";
 import { OrigamiTemplateLibrary } from "../components/OrigamiTemplateLibrary";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../components/Resizable";
-import { Slider } from "../components/Slider";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
 import { Spinner } from "../components/Spinner";
@@ -26,7 +25,7 @@ declare global {
     interface IntrinsicElements extends ThreeElements {}
   }
 }
-import { Download, FileText, RotateCcw, Upload, Trash2, ShieldCheck, ShieldAlert, AlertTriangle, LayoutGrid, FoldVertical, Anchor, Layers, Check, Box, FileBox, BookOpen, RotateCw, Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import { Download, FileText, RotateCcw, Upload, Trash2, ShieldCheck, ShieldAlert, AlertTriangle, LayoutGrid, FoldVertical, Anchor, Layers, Check, Box, FileBox, BookOpen, RotateCw } from "lucide-react";
 import { applyCutLine, removeFoldEdge } from "../helpers/cutLineTool";
 import { dielineExporter } from "../helpers/dielineExporter";
 import { svgDielineImporter } from "../helpers/svgDielineImporter";
@@ -55,6 +54,10 @@ import { CameraFixer } from "../helpers/CameraFixer";
 import { StudioTrackpadControls } from "../components/StudioTrackpadControls";
 import { StudioSelectionControls } from "../components/StudioSelectionControls";
 import { getFoldEdgeSignature, setFoldEdgeAssignment } from "../helpers/foldEdgeInteraction";
+import { FoldPlayback } from "../components/FoldPlayback";
+import { toast } from "sonner";
+import { StudioProjectControls } from '../components/StudioProjectControls';
+import { plainGeometry, embedArtwork, decodeProjectImage, serializeProject, parseProject, type ProjectState } from '../helpers/studioProject';
 import styles from "./studio.module.css";
 
 // Stable references for Canvas props — prevents re-initialization on every render 
@@ -161,42 +164,10 @@ export default function StudioPage() {
 
   const [progress, setProgress] = useState(0); // 0 to 100
   const [sequential, setSequential] = useState(false);
-  const [popupPlaying, setPopupPlaying] = useState(false);
-  const popupPlaybackDirectionRef = useRef<1 | -1>(1);
-
   const bookAngleDeg = studioMode === 'popup'
     ? interpolateBookAngle(0, 180, progress / 100)
     : (progress / 100) * 180;
 
-  useEffect(() => {
-    if (!popupPlaying || studioMode !== 'popup') return;
-
-    let animationFrame = 0;
-    let previousTime = performance.now();
-
-    const animate = (time: number) => {
-      const deltaSeconds = Math.min(0.05, (time - previousTime) / 1000);
-      previousTime = time;
-
-      setProgress((current) => {
-        let next = current + popupPlaybackDirectionRef.current * deltaSeconds * 32;
-        if (next >= 100) {
-          next = 100;
-          popupPlaybackDirectionRef.current = -1;
-        } else if (next <= 0) {
-          next = 0;
-          popupPlaybackDirectionRef.current = 1;
-        }
-        return next;
-      });
-
-      animationFrame = requestAnimationFrame(animate);
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [popupPlaying, studioMode]);
-  
   const [hoveredFaceIndex, setHoveredFaceIndex] = useState<number | null>(null);
   const [selectedFaceIndex, setSelectedFaceIndex] = useState<number | null>(null);
   const [showValidation, setShowValidation] = useState(false);
@@ -226,8 +197,12 @@ export default function StudioPage() {
   const [isVerso, setIsVerso] = useState(false);
   
   const artworkLayers = useArtworkLayers();
+  const restoredColorRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const restoredColor = restoredColorRef.current;
+    restoredColorRef.current = null;
+    if (restoredColor === artworkLayers.exteriorColor) return;
     setPopupDocument((current) => current.paperColor === artworkLayers.exteriorColor
       ? current
       : { ...current, paperColor: artworkLayers.exteriorColor });
@@ -268,6 +243,52 @@ export default function StudioPage() {
   
   const [baseFoldData, setBaseFoldData] = useState<FoldData | null>(null);
   const [displayFoldData, setDisplayFoldData] = useState<FoldData | null>(null);
+  const restoredDisplayRef = useRef<FoldData | null>(null);
+  const [projectRevision, setProjectRevision] = useState(0);
+
+  const snapshotProject = async (): Promise<ProjectState> => {
+    if (!baseFoldData || !displayFoldData) throw new Error('No geometry to save.');
+    if (artworkLayers.hasPendingImages()) throw new Error('Wait for artwork imports to finish before saving.');
+    // Snapshot before awaiting image reads so settings and geometry stay coherent.
+    const snapshot = structuredClone({name, studioMode, shapeType, params,
+      baseFoldData: plainGeometry(baseFoldData), displayFoldData: plainGeometry(displayFoldData),
+      paperShape, origamiPaperWidth, origamiPaperHeight, origamiFoldType, origamiFoldAngle,
+      popupDocument, spirogamiParams, importedMode, importWarnings, importFileName,
+      progress, sequential, groundFaceIndex, showGrid, isVerso, layerVisibility,
+      artwork: {layers: artworkLayers.layers, vectorLocked: artworkLayers.vectorLocked,
+        materialType: artworkLayers.materialType, exteriorColor: artworkLayers.exteriorColor, interiorColor: artworkLayers.interiorColor}});
+    snapshot.artwork.layers = await embedArtwork(snapshot.artwork.layers);
+    return snapshot;
+  };
+
+  const restoreProject = async (input: ProjectState) => {
+    // Validate and exercise derivations before changing any current state.
+    const s = parseProject(serializeProject(input)).state;
+    if (s.studioMode === 'popup') getPopupPatternFoldData(s.popupDocument);
+    if (s.studioMode === 'spirogami') generateSpirogamiFlatFoldData(s.spirogamiParams);
+    if (s.studioMode === 'packaging') applyTabFillets(applyDoubleScoring(s.baseFoldData, s.params.materialThickness).foldData, s.params.tabFilletRadius ?? 0);
+    for (const layer of s.artwork.layers) await decodeProjectImage(layer.url);
+    restoredColorRef.current = s.artwork.exteriorColor;
+    artworkLayers.restoreProject(s.artwork);
+    prevParamsRef.current = s.params;
+    prevShapeTypeRef.current = s.shapeType;
+    restoredDisplayRef.current = s.displayFoldData;
+    initRef.current = true;
+    studioModeRef.current = s.studioMode;
+    setName(s.name); setStudioMode(s.studioMode); setShapeType(s.shapeType); setParams(s.params);
+    setBaseFoldData(s.baseFoldData); setDisplayFoldData(s.displayFoldData);
+    setPaperShape(s.paperShape); setOrigamiPaperWidth(s.origamiPaperWidth); setOrigamiPaperHeight(s.origamiPaperHeight);
+    setOrigamiFoldType(s.origamiFoldType); setOrigamiFoldAngle(s.origamiFoldAngle);
+    setPopupDocument(s.popupDocument); setSpirogamiParams(s.spirogamiParams);
+    setImportedMode(s.importedMode); setImportWarnings(s.importWarnings); setImportFileName(s.importFileName);
+    setProgress(s.progress); setSequential(s.sequential); setGroundFaceIndex(s.groundFaceIndex);
+    setShowGrid(s.showGrid); setIsVerso(s.isVerso); setLayerVisibility(s.layerVisibility);
+    setHoveredFaceIndex(null); setSelectedFaceIndex(null); setSelectedEdgeIndex(null); setSelectedMechanismId(null);
+    setCutToolActive(false); setGroundFaceToolActive(false);
+    setShowTemplateLibrary(false); setShowPopupTemplateLibrary(false); setShowOrigamiTemplateLibrary(false);
+    setProjectRevision(r => r + 1); // Stop the old playback clock, including same-mode loads.
+    navigate(`/studio?mode=${s.studioMode}`, {replace:true});
+  };
 
   const handleModeChange = (mode: 'packaging' | 'origami' | 'popup' | 'spirogami') => {
     setStudioMode(mode);
@@ -357,7 +378,7 @@ export default function StudioPage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selectedEdgeIndex === null || !baseFoldData) return;
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+        if (e.target instanceof HTMLElement && (e.target.isContentEditable || e.target.closest('input, textarea, select'))) return;
         e.preventDefault();
         
         const baseIdx = doubledToBaseMapRef.current.get(selectedEdgeIndex);
@@ -380,12 +401,20 @@ export default function StudioPage() {
   const handleSvgImport = (files: File[]) => {
     const file = files[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Unable to import SVG: maximum file size is 10 MB.');
+      return;
+    }
 
     const reader = new FileReader();
+    reader.onerror = () => toast.error('Unable to import SVG: the file could not be read.');
     reader.onload = (e) => {
       try {
         const text = e.target?.result as string;
         const { foldData, warnings } = svgDielineImporter(text);
+        if (!foldData.verticesCoords.length || !foldData.facesVertices.length) {
+          throw new Error('No closed faces were found in this SVG.');
+        }
         
         setBaseFoldData(foldData);
         setImportWarnings(warnings);
@@ -393,7 +422,7 @@ export default function StudioPage() {
         setImportedMode(true);
         setName(file.name.replace(/\.[^/.]+$/, ""));
       } catch (err) {
-        console.error(err);
+        toast.error(`Unable to import SVG: ${err instanceof Error ? err.message : 'Invalid SVG document.'}`);
       }
     };
     reader.readAsText(file);
@@ -467,6 +496,14 @@ export default function StudioPage() {
 
   // Derive displayFoldData
   useEffect(() => {
+    if (restoredDisplayRef.current) {
+      setDisplayFoldData(restoredDisplayRef.current);
+      doubledToBaseMapRef.current = studioMode === 'packaging' && baseFoldData
+        ? applyDoubleScoring(baseFoldData, params.materialThickness).doubledToBaseMap
+        : new Map(restoredDisplayRef.current.edgesVertices.map((_, i) => [i, i]));
+      restoredDisplayRef.current = null;
+      return;
+    }
     if (studioMode === 'popup') {
       try {
         const pfd = getPopupPatternFoldData(popupDocument);
@@ -734,6 +771,7 @@ const handleExport = () => {
       <ResizablePanelGroup direction="horizontal">
         {/* Left Sidebar - Controls */}
         <ResizablePanel defaultSize={18} minSize={15} maxSize={30} className={styles.sidebarPanel}>
+          <StudioProjectControls snapshot={snapshotProject} restore={restoreProject} />
           {studioMode === 'spirogami' ? (
             <StudioSpiroSidebar
               studioMode={studioMode}
@@ -1116,71 +1154,7 @@ const handleExport = () => {
           </div>
           
           {/* Bottom Bar Slider inside the 3D panel */}
-          <div className={styles.progressContainer}>
-            <span className={styles.progressLabel}>{studioMode === 'popup' ? 'Book Opening' : 'Fold Progress'}</span>
-            <div className={styles.progressSlider}>
-              <Slider 
-                value={[progress]} 
-                onValueChange={v => {
-                  if (studioMode === 'popup') setPopupPlaying(false);
-                  setProgress(v[0]);
-                }} 
-                max={100} 
-                step={0.5} 
-              />
-            </div>
-            <div className={styles.progressActions}>
-              {studioMode === 'popup' && (
-                <div className={styles.popupPlaybackControls}>
-                  <button
-                    type="button"
-                    className={styles.progressIconButton}
-                    onClick={() => {
-                      setPopupPlaying(false);
-                      popupPlaybackDirectionRef.current = 1;
-                      setProgress(0);
-                    }}
-                    title="Close pop-up"
-                    aria-label="Close pop-up"
-                  >
-                    <SkipBack size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.progressIconButton} ${popupPlaying ? styles.progressIconButtonActive : ''}`}
-                    onClick={() => setPopupPlaying((playing) => !playing)}
-                    title={popupPlaying ? "Pause folding animation" : "Play folding and unfolding"}
-                    aria-label={popupPlaying ? "Pause folding animation" : "Play folding and unfolding"}
-                  >
-                    {popupPlaying ? <Pause size={14} /> : <Play size={14} />}
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.progressIconButton}
-                    onClick={() => {
-                      setPopupPlaying(false);
-                      popupPlaybackDirectionRef.current = -1;
-                      setProgress(100);
-                    }}
-                    title="Open pop-up"
-                    aria-label="Open pop-up"
-                  >
-                    <SkipForward size={14} />
-                  </button>
-                </div>
-              )}
-              {studioMode !== 'popup' && studioMode !== 'spirogami' && (
-                <button 
-                  className={`${styles.layerToggle} ${sequential ? styles.layerToggleActive : styles.layerToggleInactive}`}
-                  onClick={() => setSequential(s => !s)}
-                  title="Sequential animation"
-                >
-                  Sequential
-                </button>
-              )}
-              <span className={styles.progressValue}>{progress.toFixed(0)}%</span>
-            </div>
-          </div>
+          <FoldPlayback key={`${studioMode}-${projectRevision}`} progress={progress} onChange={setProgress} book={studioMode === 'popup'} sequential={sequential} onSequentialChange={studioMode !== 'popup' && studioMode !== 'spirogami' ? () => setSequential(s => !s) : undefined} />
             </>
           )}
         </ResizablePanel>
